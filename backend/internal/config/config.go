@@ -12,11 +12,18 @@ type Config struct {
 	Production       bool
 }
 
-func LoadConfig() (*Config, error) {
+func LoadConfig(envPath string) (*Config, error) {
 	cfg := &Config{}
 
-	if err := godotenv.Load(); err != nil {
-		return nil, fmt.Errorf("failed to load .env file: %w", err)
+	var err error
+	if envPath != "" {
+		err = godotenv.Load(envPath)
+	} else {
+		err = godotenv.Load()
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("error loading .env file: %w", err)
 	}
 
 	cfg.Production = os.Getenv("PRODUCTION") == "true"
