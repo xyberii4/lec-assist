@@ -18,6 +18,8 @@ var (
 
 type Client interface {
 	CreateIndex(ctx context.Context, indexName string, model []string) (*sdk.InlineObject9, error)
+	DeleteIndex(ctx context.Context, indexId string) error
+	RetrieveIndex(ctx context.Context, indexId string) (*sdk.Index, error)
 }
 
 type twelvelabsClient struct {
@@ -70,6 +72,40 @@ func (c *twelvelabsClient) CreateIndex(ctx context.Context, indexName string, mo
 	zap.L().Info("Index created successfully",
 		zap.String("index_id", *resp.Id),
 		zap.String("index_name", indexName))
+	return resp, nil
+}
+
+// Deletes an index by its ID
+func (c *twelvelabsClient) DeleteIndex(ctx context.Context, indexId string) error {
+	// Create and execute request
+	r, err := c.apiClient.ManageIndexesAPI.DeleteIndex(ctx, indexId).
+		XApiKey(c.getDefaultHeader("x-api-key")).
+		ContentType(c.getDefaultHeader("Content-Type")).
+		Execute()
+	if err != nil {
+		return c.handleHttpError(r, err, "DeleteIndex")
+	}
+	defer r.Body.Close()
+
+	zap.L().Info("Index deleted successfully",
+		zap.String("index_id", indexId))
+	return nil
+}
+
+func (c *twelvelabsClient) RetrieveIndex(ctx context.Context, indexId string) (*sdk.Index, error) {
+	resp, r, err := c.apiClient.ManageIndexesAPI.RetrieveIndex(ctx, indexId).
+		XApiKey(c.getDefaultHeader("x-api-key")).
+		ContentType(c.getDefaultHeader("Content-Type")).
+		Execute()
+	if err != nil {
+		return nil, c.handleHttpError(r, err, "RetrieveIndex")
+	}
+	defer r.Body.Close()
+
+	zap.L().Info("Index retrieved successfully",
+		zap.String("index_id", indexId),
+		zap.String("index_name", *resp.IndexName))
+
 	return resp, nil
 }
 
