@@ -149,19 +149,19 @@ func (c *twelvelabsClient) ListIndexes(ctx context.Context, query *listIndexesQu
 		SortOption(query.SortOption)
 
 	if query.IndexName != "" {
-		req.IndexName(query.IndexName)
+		req = req.IndexName(query.IndexName)
 	}
 	if query.ModelFamily != "" {
-		req.ModelFamily(query.ModelFamily)
+		req = req.ModelFamily(query.ModelFamily)
 	}
 	if query.ModelOptions != "" {
-		req.ModelOptions(query.ModelOptions)
+		req = req.ModelOptions(query.ModelOptions)
 	}
 	if query.CreatedAt != "" {
-		req.CreatedAt(query.CreatedAt)
+		req = req.CreatedAt(query.CreatedAt)
 	}
 	if query.UpdatedAt != "" {
-		req.UpdatedAt(query.UpdatedAt)
+		req = req.UpdatedAt(query.UpdatedAt)
 	}
 
 	resp, r, err := req.Execute()
