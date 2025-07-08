@@ -19,6 +19,7 @@ var (
 type Client interface {
 	CreateIndex(ctx context.Context, indexName string, model []string) (*sdk.InlineObject9, error)
 	DeleteIndex(ctx context.Context, indexId string) error
+	ListIndexes(ctx context.Context, query *listIndexesQuery) (*sdk.InlineObject7, error)
 	RetrieveIndex(ctx context.Context, indexId string) (*sdk.Index, error)
 }
 
