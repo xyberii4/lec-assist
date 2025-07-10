@@ -21,6 +21,9 @@ type Client interface {
 	DeleteIndex(ctx context.Context, indexId string) error
 	ListIndexes(ctx context.Context, query *listIndexesQuery) (*sdk.InlineObject7, error)
 	RetrieveIndex(ctx context.Context, indexId string) (*sdk.Index, error)
+
+	UploadVideo(ctx context.Context, req *uploadVideoRequest) (*sdk.InlineObject8, error)
+	ListUploadTasks(ctx context.Context, query *listUploadTasksQuery) (*sdk.InlineObject5, error)
 }
 
 type twelvelabsClient struct {
