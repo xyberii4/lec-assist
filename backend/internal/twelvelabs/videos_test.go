@@ -35,15 +35,31 @@ func TestUploadVideo(t *testing.T) {
 
 	t.Log("Uploading from file to index...")
 	fileResp, err := client.UploadVideo(ctx, fileReq)
+	fileTaskId := fileResp.GetId()
+	fileVideoId := fileResp.GetVideoId()
 	require.NoError(t, err, "UploadVideo should not return an error")
-	assert.NotEmpty(t, fileResp.GetId(), "Task ID should not be empty")
-	assert.NotEmpty(t, fileResp.GetVideoId(), "Video ID should not be empty")
+	assert.NotEmpty(t, fileTaskId, "Task ID should not be empty")
+	assert.NotEmpty(t, fileVideoId, "Video ID should not be empty")
+
+	t.Log("Retrieving video upload task for file upload...")
+	fileTaskResp, err := client.RetrieveUploadTask(ctx, fileTaskId)
+	require.NoError(t, err, "GetUploadTask should not return an error")
+	assert.Equal(t, fileTaskId, fileTaskResp.GetId(), "Task ID should match")
+	assert.Equal(t, fileVideoId, fileTaskResp.GetVideoId(), "Video ID should match")
 
 	t.Log("Uploading from URL to index...")
 	urlResp, err := client.UploadVideo(ctx, urlReq)
+	urlTaskId := urlResp.GetId()
+	urlVideoId := urlResp.GetVideoId()
 	require.NoError(t, err, "UploadVideo should not return an error")
 	assert.NotEmpty(t, urlResp.GetId(), "Task ID should not be empty")
 	assert.NotEmpty(t, urlResp.GetVideoId(), "Video ID should not be empty")
+
+	t.Log("Retrieving video upload task for URL upload...")
+	urlTaskResp, err := client.RetrieveUploadTask(ctx, urlTaskId)
+	require.NoError(t, err, "GetUploadTask should not return an error")
+	assert.Equal(t, urlTaskId, urlTaskResp.GetId(), "Task ID should match")
+	assert.Equal(t, urlVideoId, urlTaskResp.GetVideoId(), "Video ID should match")
 }
 
 func TestListUploadTasks(t *testing.T) {
@@ -62,5 +78,29 @@ func TestListUploadTasks(t *testing.T) {
 		t.Logf("Task ID: %s, Video ID: %s, Status: %s", task.GetId(), task.GetVideoId(), task.GetStatus())
 		assert.NotEmpty(t, task.GetId(), "Task ID should not be empty")
 		assert.NotEmpty(t, task.GetVideoId(), "Video ID should not be empty")
+	}
+}
+
+func TestListVideos(t *testing.T) {
+	require.NotNil(t, client, "TwelveLabs client should be initialized")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	godotenv.Load("../../.env")
+	indexId := os.Getenv("TEST_INDEX_ID")
+
+	t.Log("Listing videos with default query...")
+	req := NewListVideosQuery(indexId)
+	resp, err := client.ListVideos(ctx, req)
+	require.NoError(t, err, "ListVideos should not return an error")
+	assert.NotNil(t, resp.GetData(), "Videos list should not be nil")
+	for _, video := range resp.GetData() {
+		id := video.GetId()
+		metadata := video.GetSystemMetadata()
+		filename := metadata.GetFilename()
+		t.Logf("Video ID: %s, Filename: %s", id, filename)
+		assert.NotEmpty(t, video.GetId(), "Video ID should not be empty")
+		assert.NotEmpty(t, filename, "Filename should not be empty")
 	}
 }

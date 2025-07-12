@@ -96,3 +96,61 @@ func (c *twelvelabsClient) ListUploadTasks(ctx context.Context, query *listUploa
 
 	return resp, nil
 }
+
+// Get details of a specific upload task
+func (c *twelvelabsClient) RetrieveUploadTask(ctx context.Context, taskId string) (*sdk.InlineObject6, error) {
+	req := c.apiClient.UploadVideosAPI.RetrieveVideoIndexingTask(ctx, taskId).
+		XApiKey(c.getDefaultHeader("x-api-key")).
+		ContentType(c.getDefaultHeader("Content-Type"))
+
+	resp, r, err := req.Execute()
+	if err != nil {
+		return nil, c.handleHttpError(r, err, "RetrieveUploadTask")
+	}
+
+	zap.L().Info("Upload task retrieved successfully",
+		zap.String("task_id", taskId),
+		zap.String("status", resp.GetStatus()))
+
+	return resp, nil
+}
+
+// List videos in an index
+func (c *twelvelabsClient) ListVideos(ctx context.Context, query *listVideosQuery) (*sdk.InlineObject3, error) {
+	req := c.apiClient.ManageVideosAPI.ListVideos(ctx, query.IndexId).
+		XApiKey(c.getDefaultHeader("x-api-key")).
+		ContentType(c.getDefaultHeader("Content-Type")).
+		Page(query.Page).PageLimit(query.PageLimit).SortBy(query.SortBy).SortOption(query.SortOption)
+
+	if query.CreatedAt != "" {
+		req = req.CreatedAt(query.CreatedAt)
+	}
+	if query.UpdatedAt != "" {
+		req = req.UpdatedAt(query.UpdatedAt)
+	}
+	if query.Filename != "" {
+		req = req.Filename(query.Filename)
+	}
+	if query.Duration > 0 {
+		req = req.Duration(query.Duration)
+	}
+	if query.Width > 0 {
+		req = req.Width(query.Width)
+	}
+	if query.Height > 0 {
+		req = req.Height(query.Height)
+	}
+
+	resp, r, err := req.Execute()
+	if err != nil {
+		return nil, c.handleHttpError(r, err, "ListVideos")
+	}
+
+	pageInfo := resp.GetPageInfo()
+
+	zap.L().Info("Videos listed successfully",
+		zap.String("index_id", query.IndexId),
+		zap.Int32("count", pageInfo.GetTotalResults()))
+
+	return resp, nil
+}

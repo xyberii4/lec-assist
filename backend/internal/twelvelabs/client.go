@@ -24,6 +24,8 @@ type Client interface {
 
 	UploadVideo(ctx context.Context, req *uploadVideoRequest) (*sdk.InlineObject8, error)
 	ListUploadTasks(ctx context.Context, query *listUploadTasksQuery) (*sdk.InlineObject5, error)
+	RetrieveUploadTask(ctx context.Context, taskId string) (*sdk.InlineObject6, error)
+	ListVideos(ctx context.Context, query *listVideosQuery) (*sdk.InlineObject3, error)
 }
 
 type twelvelabsClient struct {

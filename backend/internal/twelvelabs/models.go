@@ -3,6 +3,7 @@ package twelvelabs
 import (
 	"os"
 
+	sdk "github.com/xyberii4/lec-assist/backend/pkg/twelvelabs"
 	"go.uber.org/zap"
 )
 
@@ -128,7 +129,7 @@ type listUploadTasksQuery struct {
 	Height   int32
 }
 
-type listUploadTasksOption (func(*listUploadTasksQuery))
+type ListUploadTasksOption (func(*listUploadTasksQuery))
 
 func DefaultListUploadTasksQuery() *listUploadTasksQuery {
 	return &listUploadTasksQuery{
@@ -140,50 +141,130 @@ func NewListUploadTasksQuery(opts ...interface{}) *listUploadTasksQuery {
 	query := DefaultListUploadTasksQuery()
 	for _, opt := range opts {
 		switch o := opt.(type) {
-		case listUploadTasksOption:
+		case ListUploadTasksOption:
 			o(query)
 		case CommonListQueryOption:
 			o(&query.commonListQueryParameters)
 		default:
-			zap.L().Warn("Unknown option type for NewListUploadTasksQuery", zap.Any("option", o))
+			zap.L().Warn("Unknown option type for ListUploadTasksQuery", zap.Any("option", o))
 		}
 	}
 	return query
 }
 
-func WithIndexId(indexId string) listUploadTasksOption {
+func WithListUploadTasksIndexId(indexId string) ListUploadTasksOption {
 	return func(q *listUploadTasksQuery) {
 		q.IndexId = indexId
 	}
 }
 
-func WithStatus(status []string) listUploadTasksOption {
+func WithListUploadTasksStatus(status []string) ListUploadTasksOption {
 	return func(q *listUploadTasksQuery) {
 		q.Status = status
 	}
 }
 
-func WithFilename(filename string) listUploadTasksOption {
+func WithListUploadTasksFilename(filename string) ListUploadTasksOption {
 	return func(q *listUploadTasksQuery) {
 		q.Filename = filename
 	}
 }
 
-func WithDuration(duration float32) listUploadTasksOption {
+func WithListUploadTasksDuration(duration float32) ListUploadTasksOption {
 	return func(q *listUploadTasksQuery) {
 		q.Duration = duration
 	}
 }
 
-func WithWidth(width int32) listUploadTasksOption {
+func WithListUploadTasksWidth(width int32) ListUploadTasksOption {
 	return func(q *listUploadTasksQuery) {
 		q.Width = width
 	}
 }
 
-func WithHeight(height int32) listUploadTasksOption {
+func WithListUploadTasksHeight(height int32) ListUploadTasksOption {
 	return func(q *listUploadTasksQuery) {
 		q.Height = height
+	}
+}
+
+// -- List Videos Query Parameters --
+type listVideosQuery struct {
+	commonListQueryParameters
+
+	IndexId      string
+	Filename     string
+	Duration     float32
+	Fps          float32
+	Width        float32
+	Height       int32
+	Size         float32 // bytes
+	UserMetadata map[string]sdk.ListVideosUserMetadataParameterValue
+}
+
+type ListVideosOption func(*listVideosQuery)
+
+func DefaultListVideosQuery(indexId string) *listVideosQuery {
+	return &listVideosQuery{
+		commonListQueryParameters: defaultCommonQueryParameters(),
+		IndexId:                   indexId,
+	}
+}
+
+func NewListVideosQuery(indexId string, opts ...interface{}) *listVideosQuery {
+	query := DefaultListVideosQuery(indexId)
+	for _, opt := range opts {
+		switch o := opt.(type) {
+		case ListVideosOption:
+			o(query)
+		case CommonListQueryOption:
+			o(&query.commonListQueryParameters)
+		default:
+			zap.L().Warn("Unknown option type for ListVideosQuery", zap.Any("option", o))
+		}
+	}
+	return query
+}
+
+func WithListVideosFilename(filename string) ListVideosOption {
+	return func(q *listVideosQuery) {
+		q.Filename = filename
+	}
+}
+
+func WithListVideosDuration(duration float32) ListVideosOption {
+	return func(q *listVideosQuery) {
+		q.Duration = duration
+	}
+}
+
+func WithListVideosFps(fps float32) ListVideosOption {
+	return func(q *listVideosQuery) {
+		q.Fps = fps
+	}
+}
+
+func WithListVideosWidth(width float32) ListVideosOption {
+	return func(q *listVideosQuery) {
+		q.Width = width
+	}
+}
+
+func WithListVideosHeight(height int32) ListVideosOption {
+	return func(q *listVideosQuery) {
+		q.Height = height
+	}
+}
+
+func WithListVideosSize(size float32) ListVideosOption {
+	return func(q *listVideosQuery) {
+		q.Size = size
+	}
+}
+
+func WithListVideosUserMetadata(userMetadata map[string]sdk.ListVideosUserMetadataParameterValue) ListVideosOption {
+	return func(q *listVideosQuery) {
+		q.UserMetadata = userMetadata
 	}
 }
 
