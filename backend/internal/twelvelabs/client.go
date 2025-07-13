@@ -26,6 +26,10 @@ type Client interface {
 	ListUploadTasks(ctx context.Context, query *listUploadTasksQuery) (*sdk.InlineObject5, error)
 	RetrieveUploadTask(ctx context.Context, taskId string) (*sdk.InlineObject6, error)
 	ListVideos(ctx context.Context, query *listVideosQuery) (*sdk.InlineObject3, error)
+
+	Analyze(ctx context.Context, videoId string, prompt string, temp float32, stream bool) (*sdk.Analyze200Response, error)
+	Gist(ctx context.Context, videoId string, outputTypes []string) (*sdk.Gist, error)
+	Summarise(ctx context.Context, videoId string, outputType string, prompt string, temp float32) (*sdk.InlineObject19, error)
 }
 
 type twelvelabsClient struct {

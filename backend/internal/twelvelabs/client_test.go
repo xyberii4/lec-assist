@@ -3,6 +3,7 @@ package twelvelabs
 import (
 	"testing"
 
+	"github.com/joho/godotenv"
 	"github.com/xyberii4/lec-assist/backend/internal/utils"
 	"go.uber.org/zap"
 )
@@ -14,6 +15,8 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		zap.L().Error("Failed to load config for tests", zap.Error(err))
 	}
+
+	godotenv.Load("../../.env")
 
 	// Initialize the TwelveLabs client with the test configuration
 	InitClient(env.Config.TwelveLabsAPIKey)
