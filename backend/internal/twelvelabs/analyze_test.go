@@ -8,19 +8,21 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	sdk "github.com/xyberii4/lec-assist/backend/pkg/twelvelabs"
 )
 
 func TestAnalyze(t *testing.T) {
 	assert.NotNil(t, client, "TwelveLabs client should be initialized")
 
-	context, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	context, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	videoId := os.Getenv("TEST_VIDEO1_ID")
+	videoId := os.Getenv("TEST_VIDEO2_ID")
 	prompt := "Create defintions for keywords mentioned in the video"
-	stream := false
 
-	resp, err := client.Analyze(context, videoId, prompt, 0.2, stream)
+	req := sdk.NewAnalyzeRequest(videoId, prompt)
+
+	resp, err := client.Analyze(context, req)
 	assert.NoError(t, err, "Analyze should not return an error")
 
 	data := resp.NonStreamGenerateResponse.GetData()
@@ -35,7 +37,9 @@ func TestGist(t *testing.T) {
 
 	videoId := os.Getenv("TEST_VIDEO1_ID")
 	outputTypes := []string{"title", "topic"}
-	resp, err := client.Gist(context, videoId, outputTypes)
+	gistReq := sdk.NewGistRequest(videoId, outputTypes)
+
+	resp, err := client.Gist(context, gistReq)
 	require.NoError(t, err, "Gist should not return an error")
 	title := resp.GetTitle()
 	topics := resp.GetTopics()
@@ -50,8 +54,9 @@ func TestSummarise(t *testing.T) {
 
 	videoId := os.Getenv("TEST_VIDEO2_ID")
 	outputType := "summary"
+	summaryReq := sdk.NewSummarizeRequest(videoId, outputType)
 
-	resp, err := client.Summarise(context, videoId, outputType, "", 0.2)
+	resp, err := client.Summarise(context, summaryReq)
 	require.NoError(t, err, "Summarise should not return an error")
 
 	summary := *resp.Summary.Summary

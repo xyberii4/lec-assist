@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	sdk "github.com/xyberii4/lec-assist/backend/pkg/twelvelabs"
 )
 
 func TestManageIndex(t *testing.T) {
@@ -25,7 +26,15 @@ func TestManageIndex(t *testing.T) {
 	}()
 
 	t.Logf("Creating index %s...", indexName)
-	createResp, err := client.CreateIndex(ctx, indexName, models)
+
+	indexModels := make([]sdk.CreateIndexRequestModelsInner, len(models))
+	for i, m := range models {
+		indexModels[i] = *sdk.NewCreateIndexRequestModelsInner(m, []string{"visual", "audio"})
+	}
+
+	createReq := sdk.NewCreateIndexRequest(indexName, indexModels)
+
+	createResp, err := client.CreateIndex(ctx, createReq)
 	require.NoError(t, err, "Failed to create index")
 
 	indexId = createResp.GetId()
@@ -33,7 +42,12 @@ func TestManageIndex(t *testing.T) {
 	t.Logf("Successfully created index %s with ID %s", indexName, indexId)
 
 	t.Logf("Retrieving index %s...", indexId)
-	index, err := client.RetrieveIndex(ctx, indexId)
+
+	retrieveReq := &RetrieveIndexRequest{
+		IndexId: indexId,
+	}
+
+	index, err := client.RetrieveIndex(ctx, retrieveReq)
 	require.NoError(t, err, "Failed to retrieve index")
 	t.Logf("Successfully retrieved index %s: %+v", indexId, index)
 }
@@ -53,7 +67,15 @@ func TestListIndexes(t *testing.T) {
 	}()
 
 	t.Logf("Creating index %s...", indexName)
-	createResp, err := client.CreateIndex(ctx, indexName, models)
+
+	indexModels := make([]sdk.CreateIndexRequestModelsInner, len(models))
+	for i, m := range models {
+		indexModels[i] = *sdk.NewCreateIndexRequestModelsInner(m, []string{"visual", "audio"})
+	}
+
+	createReq := sdk.NewCreateIndexRequest(indexName, indexModels)
+
+	createResp, err := client.CreateIndex(ctx, createReq)
 	require.NoError(t, err, "Failed to create index")
 	indexId = createResp.GetId()
 	t.Logf("Successfully created index %s with ID %s", indexName, indexId)
@@ -89,7 +111,11 @@ func cleanup(t *testing.T, indexId string) {
 		deleteCtx, deleteCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer deleteCancel()
 
-		deleteErr := client.DeleteIndex(deleteCtx, indexId)
+		deleteReq := &DeleteIndexRequest{
+			IndexId: indexId,
+		}
+
+		deleteErr := client.DeleteIndex(deleteCtx, deleteReq)
 		if deleteErr != nil {
 			t.Errorf("Failed to delete index %s: %v", indexId, deleteErr)
 		} else {

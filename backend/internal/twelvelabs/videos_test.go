@@ -14,8 +14,7 @@ import (
 func TestUploadVideo(t *testing.T) {
 	require.NotNil(t, client, "TwelveLabs client should be initialized")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	ctx := context.Background()
 
 	godotenv.Load("../../.env")
 
@@ -42,7 +41,12 @@ func TestUploadVideo(t *testing.T) {
 	assert.NotEmpty(t, fileVideoId, "Video ID should not be empty")
 
 	t.Log("Retrieving video upload task for file upload...")
-	fileTaskResp, err := client.RetrieveUploadTask(ctx, fileTaskId)
+
+	fileRetrieveTaskReq := &RetrieveUploadTaskRequest{
+		TaskId: fileTaskId,
+	}
+
+	fileTaskResp, err := client.RetrieveUploadTask(ctx, fileRetrieveTaskReq)
 	require.NoError(t, err, "GetUploadTask should not return an error")
 	assert.Equal(t, fileTaskId, fileTaskResp.GetId(), "Task ID should match")
 	assert.Equal(t, fileVideoId, fileTaskResp.GetVideoId(), "Video ID should match")
@@ -56,7 +60,12 @@ func TestUploadVideo(t *testing.T) {
 	assert.NotEmpty(t, urlResp.GetVideoId(), "Video ID should not be empty")
 
 	t.Log("Retrieving video upload task for URL upload...")
-	urlTaskResp, err := client.RetrieveUploadTask(ctx, urlTaskId)
+
+	urlRetrieveTaskReq := &RetrieveUploadTaskRequest{
+		TaskId: urlTaskId,
+	}
+
+	urlTaskResp, err := client.RetrieveUploadTask(ctx, urlRetrieveTaskReq)
 	require.NoError(t, err, "GetUploadTask should not return an error")
 	assert.Equal(t, urlTaskId, urlTaskResp.GetId(), "Task ID should match")
 	assert.Equal(t, urlVideoId, urlTaskResp.GetVideoId(), "Video ID should match")

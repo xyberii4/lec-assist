@@ -17,19 +17,19 @@ var (
 )
 
 type Client interface {
-	CreateIndex(ctx context.Context, indexName string, model []string) (*sdk.InlineObject9, error)
-	DeleteIndex(ctx context.Context, indexId string) error
-	ListIndexes(ctx context.Context, query *listIndexesQuery) (*sdk.InlineObject7, error)
-	RetrieveIndex(ctx context.Context, indexId string) (*sdk.Index, error)
+	CreateIndex(ctx context.Context, req *sdk.CreateIndexRequest) (*sdk.InlineObject9, error)
+	DeleteIndex(ctx context.Context, req *DeleteIndexRequest) error
+	ListIndexes(ctx context.Context, query *ListIndexesQuery) (*sdk.InlineObject7, error)
+	RetrieveIndex(ctx context.Context, req *RetrieveIndexRequest) (*sdk.Index, error)
 
-	UploadVideo(ctx context.Context, req *uploadVideoRequest) (*sdk.InlineObject8, error)
-	ListUploadTasks(ctx context.Context, query *listUploadTasksQuery) (*sdk.InlineObject5, error)
-	RetrieveUploadTask(ctx context.Context, taskId string) (*sdk.InlineObject6, error)
-	ListVideos(ctx context.Context, query *listVideosQuery) (*sdk.InlineObject3, error)
+	UploadVideo(ctx context.Context, req *UploadVideoRequest) (*sdk.InlineObject8, error)
+	ListUploadTasks(ctx context.Context, query *ListUploadTasksQuery) (*sdk.InlineObject5, error)
+	RetrieveUploadTask(ctx context.Context, req *RetrieveUploadTaskRequest) (*sdk.InlineObject6, error)
+	ListVideos(ctx context.Context, query *ListVideosQuery) (*sdk.InlineObject3, error)
 
-	Analyze(ctx context.Context, videoId string, prompt string, temp float32, stream bool) (*sdk.Analyze200Response, error)
-	Gist(ctx context.Context, videoId string, outputTypes []string) (*sdk.Gist, error)
-	Summarise(ctx context.Context, videoId string, outputType string, prompt string, temp float32) (*sdk.InlineObject19, error)
+	Analyze(ctx context.Context, req *sdk.AnalyzeRequest) (*sdk.Analyze200Response, error)
+	Gist(ctx context.Context, req *sdk.GistRequest) (*sdk.Gist, error)
+	Summarise(ctx context.Context, req *sdk.SummarizeRequest) (*sdk.InlineObject19, error)
 }
 
 type twelvelabsClient struct {

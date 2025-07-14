@@ -9,7 +9,7 @@ import (
 )
 
 // Create video uploading task
-func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *uploadVideoRequest) (*sdk.InlineObject8, error) {
+func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *UploadVideoRequest) (*sdk.InlineObject8, error) {
 	if req.IndexId == "" {
 		return nil, fmt.Errorf("IndexId is required")
 	}
@@ -54,7 +54,7 @@ func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *uploadVideoRequ
 }
 
 // Get list of videos and their upload status
-func (c *twelvelabsClient) ListUploadTasks(ctx context.Context, query *listUploadTasksQuery) (*sdk.InlineObject5, error) {
+func (c *twelvelabsClient) ListUploadTasks(ctx context.Context, query *ListUploadTasksQuery) (*sdk.InlineObject5, error) {
 	req := c.apiClient.UploadVideosAPI.ListVideoIndexingTasks(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
@@ -89,6 +89,7 @@ func (c *twelvelabsClient) ListUploadTasks(ctx context.Context, query *listUploa
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "ListUploadTasks")
 	}
+	defer r.Body.Close()
 
 	pageInfo := resp.GetPageInfo()
 	zap.L().Info("Upload tasks listed successfully",
@@ -98,25 +99,26 @@ func (c *twelvelabsClient) ListUploadTasks(ctx context.Context, query *listUploa
 }
 
 // Get details of a specific upload task
-func (c *twelvelabsClient) RetrieveUploadTask(ctx context.Context, taskId string) (*sdk.InlineObject6, error) {
-	req := c.apiClient.UploadVideosAPI.RetrieveVideoIndexingTask(ctx, taskId).
+func (c *twelvelabsClient) RetrieveUploadTask(ctx context.Context, req *RetrieveUploadTaskRequest) (*sdk.InlineObject6, error) {
+	apiReq := c.apiClient.UploadVideosAPI.RetrieveVideoIndexingTask(ctx, req.TaskId).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type"))
 
-	resp, r, err := req.Execute()
+	resp, r, err := apiReq.Execute()
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "RetrieveUploadTask")
 	}
+	defer r.Body.Close()
 
 	zap.L().Info("Upload task retrieved successfully",
-		zap.String("task_id", taskId),
+		zap.String("task_id", req.TaskId),
 		zap.String("status", resp.GetStatus()))
 
 	return resp, nil
 }
 
 // List videos in an index
-func (c *twelvelabsClient) ListVideos(ctx context.Context, query *listVideosQuery) (*sdk.InlineObject3, error) {
+func (c *twelvelabsClient) ListVideos(ctx context.Context, query *ListVideosQuery) (*sdk.InlineObject3, error) {
 	req := c.apiClient.ManageVideosAPI.ListVideos(ctx, query.IndexId).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
@@ -145,6 +147,7 @@ func (c *twelvelabsClient) ListVideos(ctx context.Context, query *listVideosQuer
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "ListVideos")
 	}
+	defer r.Body.Close()
 
 	pageInfo := resp.GetPageInfo()
 
