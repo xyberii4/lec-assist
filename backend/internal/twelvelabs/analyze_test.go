@@ -6,12 +6,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	sdk "github.com/xyberii4/lec-assist/backend/pkg/twelvelabs"
 )
 
 func TestAnalyze(t *testing.T) {
+	godotenv.Load("../../.env")
+
+	// Avoid running upload tests unless INTEGRATION_TESTS is set to true to save tokens
+	if os.Getenv("INTEGRATION_TESTS") != "true" {
+		t.Skip("Skipping integration test for video upload")
+	}
+
 	assert.NotNil(t, client, "TwelveLabs client should be initialized")
 
 	context, cancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -30,6 +38,13 @@ func TestAnalyze(t *testing.T) {
 }
 
 func TestGist(t *testing.T) {
+	godotenv.Load("../../.env")
+
+	// Avoid running upload tests unless INTEGRATION_TESTS is set to true to save tokens
+	if os.Getenv("INTEGRATION_TESTS") != "true" {
+		t.Skip("Skipping integration test for video upload")
+	}
+
 	require.NotNil(t, client, "TwelveLabs client should be initialized")
 
 	context, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -47,6 +62,13 @@ func TestGist(t *testing.T) {
 }
 
 func TestSummarise(t *testing.T) {
+	godotenv.Load("../../.env")
+
+	// Avoid running upload tests unless INTEGRATION_TESTS is set to true to save tokens
+	if os.Getenv("INTEGRATION_TESTS") != "true" {
+		t.Skip("Skipping integration test for video upload")
+	}
+
 	require.NotNil(t, client, "TwelveLabs client should be initialized")
 
 	context, cancel := context.WithTimeout(context.Background(), 30*time.Second)
