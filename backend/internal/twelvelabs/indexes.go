@@ -14,10 +14,14 @@ func (c *twelvelabsClient) CreateIndex(ctx context.Context, req *sdk.CreateIndex
 		ContentType(c.getDefaultHeader("Content-Type")).
 		CreateIndexRequest(*req).
 		Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	if err != nil {
 		return "", c.handleHttpError(r, err, "CreateIndex")
 	}
-	defer r.Body.Close()
 
 	zap.L().Info("Index created successfully",
 		zap.String("index_id", *resp.Id),
@@ -32,10 +36,14 @@ func (c *twelvelabsClient) DeleteIndex(ctx context.Context, req *DeleteIndexRequ
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
 		Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	if err != nil {
 		return c.handleHttpError(r, err, "DeleteIndex")
 	}
-	defer r.Body.Close()
 
 	zap.L().Info("Index deleted successfully",
 		zap.String("index_id", req.IndexId))
@@ -68,10 +76,14 @@ func (c *twelvelabsClient) ListIndexes(ctx context.Context, query *ListIndexesQu
 	}
 
 	resp, r, err := req.Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "ListIndexes")
 	}
-	defer r.Body.Close()
 
 	// Extract index details from response
 	indexDetails := resp.GetData()
@@ -99,10 +111,14 @@ func (c *twelvelabsClient) RetrieveIndex(ctx context.Context, req *RetrieveIndex
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
 		Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "RetrieveIndex")
 	}
-	defer r.Body.Close()
 
 	index := &IndexDetails{
 		IndexId:    resp.GetId(),

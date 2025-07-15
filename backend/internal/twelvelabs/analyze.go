@@ -14,10 +14,14 @@ func (c *twelvelabsClient) Analyze(ctx context.Context, req *sdk.AnalyzeRequest)
 		ContentType(c.getDefaultHeader("Content-Type")).
 		AnalyzeRequest(*req).
 		Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	if err != nil {
 		return "", c.handleHttpError(r, err, "Analyze")
 	}
-	defer r.Body.Close()
 
 	respData := resp.NonStreamGenerateResponse.GetData()
 
@@ -34,10 +38,14 @@ func (c *twelvelabsClient) Gist(ctx context.Context, req *sdk.GistRequest) (*Gis
 		ContentType(c.getDefaultHeader("Content-Type")).
 		GistRequest(*req).
 		Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "Gist")
 	}
-	defer r.Body.Close()
 
 	newGist := &GistResult{
 		VideoId:  req.GetVideoId(),
@@ -70,10 +78,14 @@ func (c *twelvelabsClient) Summarise(ctx context.Context, req *sdk.SummarizeRequ
 		ContentType(c.getDefaultHeader("Content-Type")).
 		SummarizeRequest(*req).
 		Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "Summarise")
 	}
-	defer r.Body.Close()
 
 	// Extract chapter, highlight, or summary details based on the response
 	newSummarise := &SummariseResult{

@@ -27,6 +27,11 @@ func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *UploadVideoRequ
 	}
 
 	resp, r, err := apiReq.Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	zap.L().Debug("Rate Limits:",
 		zap.String("X-RateLimit-Limit", r.Header.Get("X-RateLimit-Limit")),
 		zap.String("X-RateLimit-Remaining", r.Header.Get("X-RateLimit-Remaining")),
@@ -34,7 +39,6 @@ func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *UploadVideoRequ
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "UploadVideo")
 	}
-	defer r.Body.Close()
 
 	task := &TaskDetails{
 		TaskId:  resp.GetId(),
@@ -82,10 +86,14 @@ func (c *twelvelabsClient) ListUploadTasks(ctx context.Context, query *ListUploa
 	}
 
 	resp, r, err := req.Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "ListUploadTasks")
 	}
-	defer r.Body.Close()
 
 	uploads := make([]*TaskDetails, 0, len(resp.GetData()))
 
@@ -113,10 +121,14 @@ func (c *twelvelabsClient) RetrieveUploadTask(ctx context.Context, req *Retrieve
 		ContentType(c.getDefaultHeader("Content-Type"))
 
 	resp, r, err := apiReq.Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "RetrieveUploadTask")
 	}
-	defer r.Body.Close()
 
 	task := &TaskDetails{
 		TaskId:    resp.GetId(),
@@ -161,10 +173,14 @@ func (c *twelvelabsClient) ListVideos(ctx context.Context, query *ListVideosQuer
 	}
 
 	resp, r, err := req.Execute()
+
+	if r != nil {
+		defer r.Body.Close()
+	}
+
 	if err != nil {
 		return nil, c.handleHttpError(r, err, "ListVideos")
 	}
-	defer r.Body.Close()
 
 	// Extract video details
 	videos := make([]*VideoDetails, 0, len(resp.GetData()))
