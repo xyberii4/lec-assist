@@ -34,10 +34,9 @@ func TestManageIndex(t *testing.T) {
 
 	createReq := sdk.NewCreateIndexRequest(indexName, indexModels)
 
-	createResp, err := client.CreateIndex(ctx, createReq)
+	indexId, err := client.CreateIndex(ctx, createReq)
 	require.NoError(t, err, "Failed to create index")
 
-	indexId = createResp.GetId()
 	require.NotEmpty(t, indexId, "Index ID should not be empty")
 	t.Logf("Successfully created index %s with ID %s", indexName, indexId)
 
@@ -75,20 +74,19 @@ func TestListIndexes(t *testing.T) {
 
 	createReq := sdk.NewCreateIndexRequest(indexName, indexModels)
 
-	createResp, err := client.CreateIndex(ctx, createReq)
+	indexId, err := client.CreateIndex(ctx, createReq)
 	require.NoError(t, err, "Failed to create index")
-	indexId = createResp.GetId()
 	t.Logf("Successfully created index %s with ID %s", indexName, indexId)
 
 	t.Log("Listing indexes with default query...")
 	query := NewListIndexesQuery()
 	defaultListResp, err := client.ListIndexes(ctx, query)
 	require.NoError(t, err, "Failed to list indexes")
-	assert.GreaterOrEqual(t, len(defaultListResp.GetData()), 1, "Should return at least one index")
+	assert.GreaterOrEqual(t, len(defaultListResp), 1, "Should return at least one index")
 
 	indexFound := false
-	for _, index := range defaultListResp.GetData() {
-		if index.GetId() == indexId {
+	for _, index := range defaultListResp {
+		if index.IndexId == indexId {
 			indexFound = true
 			break
 		}
@@ -99,8 +97,8 @@ func TestListIndexes(t *testing.T) {
 	query = NewListIndexesQuery(WithIndexName(indexName), WithModelFamily("pegasus"))
 	customListResp, err := client.ListIndexes(ctx, query)
 	require.NoError(t, err, "Failed to list indexes with custom query")
-	assert.Equal(t, 1, len(customListResp.GetData()), "Should return exactly one index with the specified name and model family")
-	assert.Equal(t, indexId, customListResp.GetData()[0].GetId(), "Returned index ID should match the created index ID")
+	assert.Equal(t, 1, len(customListResp), "Should return exactly one index with the specified name and model family")
+	assert.Equal(t, indexId, customListResp[0].IndexId, "Returned index ID should match the created index ID")
 
 	t.Log("Successfully listed indexes")
 }

@@ -8,21 +8,21 @@ import (
 )
 
 // Creates index if it does not exist.
-func (c *twelvelabsClient) CreateIndex(ctx context.Context, req *sdk.CreateIndexRequest) (*sdk.InlineObject9, error) {
+func (c *twelvelabsClient) CreateIndex(ctx context.Context, req *sdk.CreateIndexRequest) (string, error) {
 	resp, r, err := c.apiClient.ManageIndexesAPI.CreateIndex(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
 		CreateIndexRequest(*req).
 		Execute()
 	if err != nil {
-		return nil, c.handleHttpError(r, err, "CreateIndex")
+		return "", c.handleHttpError(r, err, "CreateIndex")
 	}
 	defer r.Body.Close()
 
 	zap.L().Info("Index created successfully",
 		zap.String("index_id", *resp.Id),
 		zap.String("index_name", req.IndexName))
-	return resp, nil
+	return *resp.Id, nil
 }
 
 // Deletes an index by its ID
@@ -42,7 +42,7 @@ func (c *twelvelabsClient) DeleteIndex(ctx context.Context, req *DeleteIndexRequ
 	return nil
 }
 
-func (c *twelvelabsClient) ListIndexes(ctx context.Context, query *ListIndexesQuery) (*sdk.InlineObject7, error) {
+func (c *twelvelabsClient) ListIndexes(ctx context.Context, query *ListIndexesQuery) ([]*IndexDetails, error) {
 	req := c.apiClient.ManageIndexesAPI.ListIndexes(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
@@ -73,12 +73,28 @@ func (c *twelvelabsClient) ListIndexes(ctx context.Context, query *ListIndexesQu
 	}
 	defer r.Body.Close()
 
-	zap.L().Info("Indexes listed successfully")
+	// Extract index details from response
+	indexDetails := resp.GetData()
 
-	return resp, nil
+	indexes := make([]*IndexDetails, 0, len(indexDetails))
+
+	for _, index := range indexDetails {
+		indexes = append(indexes, &IndexDetails{
+			IndexId:    index.GetId(),
+			IndexName:  index.GetIndexName(),
+			CreatedAt:  index.GetCreatedAt(),
+			UpdatedAt:  index.GetUpdatedAt(),
+			VideoCount: int32(index.GetVideoCount()),
+		})
+	}
+
+	zap.L().Info("Indexes listed successfully",
+		zap.Int("count", len(indexes)))
+
+	return indexes, nil
 }
 
-func (c *twelvelabsClient) RetrieveIndex(ctx context.Context, req *RetrieveIndexRequest) (*sdk.Index, error) {
+func (c *twelvelabsClient) RetrieveIndex(ctx context.Context, req *RetrieveIndexRequest) (*IndexDetails, error) {
 	resp, r, err := c.apiClient.ManageIndexesAPI.RetrieveIndex(ctx, req.IndexId).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
@@ -88,9 +104,18 @@ func (c *twelvelabsClient) RetrieveIndex(ctx context.Context, req *RetrieveIndex
 	}
 	defer r.Body.Close()
 
-	zap.L().Info("Index retrieved successfully",
-		zap.String("index_id", req.IndexId),
-		zap.String("index_name", *resp.IndexName))
+	index := &IndexDetails{
+		IndexId:    resp.GetId(),
+		IndexName:  resp.GetIndexName(),
+		CreatedAt:  resp.GetCreatedAt(),
+		UpdatedAt:  resp.GetUpdatedAt(),
+		ExpiresAt:  resp.GetExpiresAt(),
+		VideoCount: int32(resp.GetVideoCount()),
+	}
 
-	return resp, nil
+	zap.L().Info("Index retrieved successfully",
+		zap.String("index_id", index.IndexId),
+		zap.String("index_name", index.IndexName))
+
+	return index, nil
 }

@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (c *twelvelabsClient) Analyze(ctx context.Context, req *sdk.AnalyzeRequest) (*sdk.Analyze200Response, error) {
+func (c *twelvelabsClient) Analyze(ctx context.Context, req *sdk.AnalyzeRequest) (string, error) {
 	req.SetStream(false) // Streaming disabled as OpenAPI generation does not support NDJSON streams
 	resp, r, err := c.apiClient.AnalyzeVideosAPI.GenerateTextRepresentation(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
@@ -15,18 +15,20 @@ func (c *twelvelabsClient) Analyze(ctx context.Context, req *sdk.AnalyzeRequest)
 		AnalyzeRequest(*req).
 		Execute()
 	if err != nil {
-		return nil, c.handleHttpError(r, err, "Analyze")
+		return "", c.handleHttpError(r, err, "Analyze")
 	}
 	defer r.Body.Close()
+
+	respData := resp.NonStreamGenerateResponse.GetData()
 
 	zap.L().Info("Successfully analyzed video",
 		zap.String("video_id", req.VideoId))
 
-	return resp, nil
+	return respData, nil
 }
 
 // Generates title, topics or hashtags from video
-func (c *twelvelabsClient) Gist(ctx context.Context, req *sdk.GistRequest) (*sdk.Gist, error) {
+func (c *twelvelabsClient) Gist(ctx context.Context, req *sdk.GistRequest) (*GistResult, error) {
 	resp, r, err := c.apiClient.AnalyzeVideosAPI.Gist(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
@@ -37,13 +39,32 @@ func (c *twelvelabsClient) Gist(ctx context.Context, req *sdk.GistRequest) (*sdk
 	}
 	defer r.Body.Close()
 
+	newGist := &GistResult{
+		VideoId:  req.GetVideoId(),
+		Topics:   []string{},
+		Hashtags: []string{},
+	}
+
+	if resp.GetTitle() != "" {
+		newGist.Title = resp.GetTitle()
+	}
+
+	if resp.GetTopics() != nil {
+		newGist.Topics = resp.GetTopics()
+	}
+
+	if resp.GetHashtags() != nil {
+		newGist.Hashtags = resp.GetHashtags()
+	}
+
 	zap.L().Info("Successfully generated gist",
 		zap.String("video_id", req.VideoId))
 
-	return resp, nil
+	return newGist, nil
 }
 
-func (c *twelvelabsClient) Summarise(ctx context.Context, req *sdk.SummarizeRequest) (*sdk.InlineObject19, error) {
+// Video ID, output type (chapter, highlight, summary) and prompt
+func (c *twelvelabsClient) Summarise(ctx context.Context, req *sdk.SummarizeRequest) (*SummariseResult, error) {
 	resp, r, err := c.apiClient.AnalyzeVideosAPI.Summarize(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
@@ -54,8 +75,42 @@ func (c *twelvelabsClient) Summarise(ctx context.Context, req *sdk.SummarizeRequ
 	}
 	defer r.Body.Close()
 
-	zap.L().Info("Successfully summarised video",
-		zap.String("video_id", req.VideoId))
+	// Extract chapter, highlight, or summary details based on the response
+	newSummarise := &SummariseResult{
+		VideoId:    req.GetVideoId(),
+		Chapter:    []*ChapterDetails{},
+		Highlights: []*HighlightDetails{},
+	}
 
-	return resp, nil
+	if resp.Chapter != nil {
+		for _, chapter := range resp.Chapter.GetChapters() {
+			newChapterDetail := &ChapterDetails{
+				ChapterNumber: int32(chapter.GetChapterNumber()),
+				Start:         int32(chapter.GetStart()),
+				End:           int32(chapter.GetEnd()),
+				Title:         chapter.GetChapterTitle(),
+				Description:   chapter.GetChapterSummary(),
+			}
+
+			newSummarise.Chapter = append(newSummarise.Chapter, newChapterDetail)
+		}
+	} else if resp.Highlight != nil {
+		for _, highlight := range resp.Highlight.GetHighlights() {
+			newHighlightDetail := &HighlightDetails{
+				Start:       int32(highlight.GetStart()),
+				End:         int32(highlight.GetEnd()),
+				Title:       highlight.GetHighlight(),
+				Description: highlight.GetHighlightSummary(),
+			}
+			newSummarise.Highlights = append(newSummarise.Highlights, newHighlightDetail)
+		}
+	} else if resp.Summary != nil {
+		newSummarise.Summary = resp.Summary.GetSummary()
+	}
+
+	zap.L().Info("Successfully summarised video",
+		zap.String("video_id", req.GetVideoId()),
+		zap.String("output_type", req.GetType()))
+
+	return newSummarise, nil
 }

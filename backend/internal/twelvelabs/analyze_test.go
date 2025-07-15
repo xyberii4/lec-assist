@@ -33,8 +33,7 @@ func TestAnalyze(t *testing.T) {
 	resp, err := client.Analyze(context, req)
 	assert.NoError(t, err, "Analyze should not return an error")
 
-	data := resp.NonStreamGenerateResponse.GetData()
-	t.Logf("Analyze response: %v", data)
+	t.Logf("Analyze response: %v", resp)
 }
 
 func TestGist(t *testing.T) {
@@ -56,8 +55,8 @@ func TestGist(t *testing.T) {
 
 	resp, err := client.Gist(context, gistReq)
 	require.NoError(t, err, "Gist should not return an error")
-	title := resp.GetTitle()
-	topics := resp.GetTopics()
+	title := resp.Title
+	topics := resp.Topics
 	t.Logf("Gist response: title=%s, topics=%v", title, topics)
 }
 
@@ -81,6 +80,8 @@ func TestSummarise(t *testing.T) {
 	resp, err := client.Summarise(context, summaryReq)
 	require.NoError(t, err, "Summarise should not return an error")
 
-	summary := *resp.Summary.Summary
-	t.Logf("Summary response: %s", summary)
+	summary := resp.Summary
+	highlights := resp.Highlights
+	assert.NotEmpty(t, summary, "Summary should not be empty")
+	assert.Empty(t, highlights, "Highlights should be empty for summary request")
 }

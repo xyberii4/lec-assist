@@ -64,3 +64,12 @@ func WithModelFamily(modelFamily string) IndexesParameter {
 		q.ModelFamily = modelFamily
 	}
 }
+
+type IndexDetails struct {
+	IndexId    string
+	IndexName  string
+	CreatedAt  string
+	UpdatedAt  string
+	ExpiresAt  string
+	VideoCount int32
+}

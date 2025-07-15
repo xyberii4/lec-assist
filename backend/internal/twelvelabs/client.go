@@ -29,19 +29,19 @@ func (e *APIError) Error() string {
 }
 
 type Client interface {
-	CreateIndex(ctx context.Context, req *sdk.CreateIndexRequest) (*sdk.InlineObject9, error)
+	CreateIndex(ctx context.Context, req *sdk.CreateIndexRequest) (string, error) // Returns index ID
 	DeleteIndex(ctx context.Context, req *DeleteIndexRequest) error
-	ListIndexes(ctx context.Context, query *ListIndexesQuery) (*sdk.InlineObject7, error)
-	RetrieveIndex(ctx context.Context, req *RetrieveIndexRequest) (*sdk.Index, error)
+	ListIndexes(ctx context.Context, query *ListIndexesQuery) ([]*IndexDetails, error)
+	RetrieveIndex(ctx context.Context, req *RetrieveIndexRequest) (*IndexDetails, error)
 
-	UploadVideo(ctx context.Context, req *UploadVideoRequest) (*sdk.InlineObject8, error)
-	ListUploadTasks(ctx context.Context, query *ListUploadTasksQuery) (*sdk.InlineObject5, error)
-	RetrieveUploadTask(ctx context.Context, req *RetrieveUploadTaskRequest) (*sdk.InlineObject6, error)
-	ListVideos(ctx context.Context, query *ListVideosQuery) (*sdk.InlineObject3, error)
+	UploadVideo(ctx context.Context, req *UploadVideoRequest) (*TaskDetails, error) // Returns task ID and video ID
+	ListUploadTasks(ctx context.Context, query *ListUploadTasksQuery) ([]*TaskDetails, error)
+	RetrieveUploadTask(ctx context.Context, req *RetrieveUploadTaskRequest) (*TaskDetails, error)
+	ListVideos(ctx context.Context, query *ListVideosQuery) ([]*VideoDetails, error)
 
-	Analyze(ctx context.Context, req *sdk.AnalyzeRequest) (*sdk.Analyze200Response, error)
-	Gist(ctx context.Context, req *sdk.GistRequest) (*sdk.Gist, error)
-	Summarise(ctx context.Context, req *sdk.SummarizeRequest) (*sdk.InlineObject19, error)
+	Analyze(ctx context.Context, req *sdk.AnalyzeRequest) (string, error) // Returns analysis result
+	Gist(ctx context.Context, req *sdk.GistRequest) (*GistResult, error)
+	Summarise(ctx context.Context, req *sdk.SummarizeRequest) (*SummariseResult, error)
 }
 
 type twelvelabsClient struct {

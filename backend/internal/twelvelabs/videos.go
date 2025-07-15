@@ -2,21 +2,12 @@ package twelvelabs
 
 import (
 	"context"
-	"fmt"
 
-	sdk "github.com/xyberii4/lec-assist/backend/pkg/twelvelabs"
 	"go.uber.org/zap"
 )
 
 // Create video uploading task
-func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *UploadVideoRequest) (*sdk.InlineObject8, error) {
-	if req.IndexId == "" {
-		return nil, fmt.Errorf("IndexId is required")
-	}
-	if (req.VideoFile == nil && req.VideoUrl == "") || (req.VideoFile != nil && req.VideoUrl != "") {
-		return nil, fmt.Errorf("either VideoFile or VideoUrl must be provided, but not both")
-	}
-
+func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *UploadVideoRequest) (*TaskDetails, error) {
 	apiReq := c.apiClient.UploadVideosAPI.CreateVideoIndexingTask(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType("multipart/form-data").
@@ -45,16 +36,21 @@ func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *UploadVideoRequ
 	}
 	defer r.Body.Close()
 
+	task := &TaskDetails{
+		TaskId:  resp.GetId(),
+		VideoId: resp.GetVideoId(),
+	}
+
 	zap.L().Info("Video upload initiated successfully",
 		zap.String("index_id", req.IndexId),
 		zap.String("task_id", resp.GetId()),
 		zap.String("video_id", resp.GetVideoId()))
 
-	return resp, nil
+	return task, nil
 }
 
 // Get list of videos and their upload status
-func (c *twelvelabsClient) ListUploadTasks(ctx context.Context, query *ListUploadTasksQuery) (*sdk.InlineObject5, error) {
+func (c *twelvelabsClient) ListUploadTasks(ctx context.Context, query *ListUploadTasksQuery) ([]*TaskDetails, error) {
 	req := c.apiClient.UploadVideosAPI.ListVideoIndexingTasks(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
@@ -91,15 +87,27 @@ func (c *twelvelabsClient) ListUploadTasks(ctx context.Context, query *ListUploa
 	}
 	defer r.Body.Close()
 
-	pageInfo := resp.GetPageInfo()
-	zap.L().Info("Upload tasks listed successfully",
-		zap.Int32("count", pageInfo.GetTotalResults()))
+	uploads := make([]*TaskDetails, 0, len(resp.GetData()))
 
-	return resp, nil
+	for _, task := range resp.GetData() {
+		uploads = append(uploads, &TaskDetails{
+			TaskId:    task.GetId(),
+			VideoId:   task.GetVideoId(),
+			CreatedAt: task.GetCreatedAt(),
+			UpdatedAt: task.GetUpdatedAt(),
+			Status:    task.GetStatus(),
+			IndexId:   task.GetIndexId(),
+		})
+	}
+
+	zap.L().Info("Upload tasks listed successfully",
+		zap.Int("count", len(uploads)))
+
+	return uploads, nil
 }
 
 // Get details of a specific upload task
-func (c *twelvelabsClient) RetrieveUploadTask(ctx context.Context, req *RetrieveUploadTaskRequest) (*sdk.InlineObject6, error) {
+func (c *twelvelabsClient) RetrieveUploadTask(ctx context.Context, req *RetrieveUploadTaskRequest) (*TaskDetails, error) {
 	apiReq := c.apiClient.UploadVideosAPI.RetrieveVideoIndexingTask(ctx, req.TaskId).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type"))
@@ -110,15 +118,24 @@ func (c *twelvelabsClient) RetrieveUploadTask(ctx context.Context, req *Retrieve
 	}
 	defer r.Body.Close()
 
+	task := &TaskDetails{
+		TaskId:    resp.GetId(),
+		VideoId:   resp.GetVideoId(),
+		CreatedAt: resp.GetCreatedAt(),
+		UpdatedAt: resp.GetUpdatedAt(),
+		Status:    resp.GetStatus(),
+		IndexId:   resp.GetIndexId(),
+	}
+
 	zap.L().Info("Upload task retrieved successfully",
 		zap.String("task_id", req.TaskId),
-		zap.String("status", resp.GetStatus()))
+		zap.String("status", task.Status))
 
-	return resp, nil
+	return task, nil
 }
 
 // List videos in an index
-func (c *twelvelabsClient) ListVideos(ctx context.Context, query *ListVideosQuery) (*sdk.InlineObject3, error) {
+func (c *twelvelabsClient) ListVideos(ctx context.Context, query *ListVideosQuery) ([]*VideoDetails, error) {
 	req := c.apiClient.ManageVideosAPI.ListVideos(ctx, query.IndexId).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
@@ -149,11 +166,28 @@ func (c *twelvelabsClient) ListVideos(ctx context.Context, query *ListVideosQuer
 	}
 	defer r.Body.Close()
 
-	pageInfo := resp.GetPageInfo()
+	// Extract video details
+	videos := make([]*VideoDetails, 0, len(resp.GetData()))
+
+	for _, video := range resp.GetData() {
+		metadata := video.GetSystemMetadata()
+		videos = append(videos, &VideoDetails{
+			VideoId:   video.GetId(),
+			CreatedAt: video.GetCreatedAt(),
+			UpdatedAt: video.GetUpdatedAt(),
+			IndexId:   video.GetIndexedAt(),
+			Filename:  metadata.GetFilename(),
+			Duration:  metadata.GetDuration(),
+			Fps:       metadata.GetFps(),
+			Width:     metadata.GetWidth(),
+			Height:    metadata.GetHeight(),
+			Size:      metadata.GetSize(),
+		})
+	}
 
 	zap.L().Info("Videos listed successfully",
 		zap.String("index_id", query.IndexId),
-		zap.Int32("count", pageInfo.GetTotalResults()))
+		zap.Int("count", len(videos)))
 
-	return resp, nil
+	return videos, nil
 }

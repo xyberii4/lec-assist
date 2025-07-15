@@ -51,6 +51,15 @@ func WithVideoUrl(videoUrl string) VideoOption {
 	}
 }
 
+type TaskDetails struct {
+	TaskId    string
+	VideoId   string
+	CreatedAt string
+	UpdatedAt string
+	Status    string
+	IndexId   string
+}
+
 // -- Upload Tasks Listing Query Parameters --
 
 type ListUploadTasksQuery struct {
@@ -121,6 +130,19 @@ func WithListUploadTasksHeight(height int32) ListUploadTasksOption {
 	return func(q *ListUploadTasksQuery) {
 		q.Height = height
 	}
+}
+
+type VideoDetails struct {
+	VideoId   string
+	CreatedAt string
+	UpdatedAt string
+	IndexId   string
+	Filename  string
+	Duration  float32
+	Fps       float32
+	Width     int32
+	Height    int32
+	Size      float32
 }
 
 // -- List Videos Query Parameters --
