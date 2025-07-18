@@ -8,6 +8,10 @@ import (
 
 // Create video uploading task
 func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *UploadVideoRequest) (*TaskDetails, error) {
+	if err := c.checkRateLimitState(ctx, uploadVideoOperation); err != nil {
+		return nil, err
+	}
+
 	apiReq := c.apiClient.UploadVideosAPI.CreateVideoIndexingTask(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType("multipart/form-data").
@@ -30,6 +34,7 @@ func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *UploadVideoRequ
 
 	if r != nil {
 		defer r.Body.Close()
+		c.updateRateLimitState(uploadVideoOperation, r)
 	}
 
 	zap.L().Debug("Rate Limits:",
@@ -37,7 +42,7 @@ func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *UploadVideoRequ
 		zap.String("X-RateLimit-Remaining", r.Header.Get("X-RateLimit-Remaining")),
 		zap.String("X-RateLimit-Reset", r.Header.Get("X-RateLimit-Reset")))
 	if err != nil {
-		return nil, c.handleHttpError(r, err, "UploadVideo")
+		return nil, c.handleHttpError(r, err, uploadVideoOperation)
 	}
 
 	task := &TaskDetails{
@@ -92,7 +97,7 @@ func (c *twelvelabsClient) ListUploadTasks(ctx context.Context, query *ListUploa
 	}
 
 	if err != nil {
-		return nil, c.handleHttpError(r, err, "ListUploadTasks")
+		return nil, c.handleHttpError(r, err, listUploadTasksOperation)
 	}
 
 	uploads := make([]*TaskDetails, 0, len(resp.GetData()))
@@ -127,7 +132,7 @@ func (c *twelvelabsClient) RetrieveUploadTask(ctx context.Context, req *Retrieve
 	}
 
 	if err != nil {
-		return nil, c.handleHttpError(r, err, "RetrieveUploadTask")
+		return nil, c.handleHttpError(r, err, retrieveUploadTaskOperation)
 	}
 
 	task := &TaskDetails{
@@ -179,7 +184,7 @@ func (c *twelvelabsClient) ListVideos(ctx context.Context, query *ListVideosQuer
 	}
 
 	if err != nil {
-		return nil, c.handleHttpError(r, err, "ListVideos")
+		return nil, c.handleHttpError(r, err, listVideosOperation)
 	}
 
 	// Extract video details

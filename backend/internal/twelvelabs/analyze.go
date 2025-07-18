@@ -8,6 +8,10 @@ import (
 )
 
 func (c *twelvelabsClient) Analyze(ctx context.Context, req *sdk.AnalyzeRequest) (string, error) {
+	if err := c.checkRateLimitState(ctx, analyzeOperation); err != nil {
+		return "", err
+	}
+
 	req.SetStream(false) // Streaming disabled as OpenAPI generation does not support NDJSON streams
 	resp, r, err := c.apiClient.AnalyzeVideosAPI.GenerateTextRepresentation(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
@@ -17,10 +21,11 @@ func (c *twelvelabsClient) Analyze(ctx context.Context, req *sdk.AnalyzeRequest)
 
 	if r != nil {
 		defer r.Body.Close()
+		c.updateRateLimitState(analyzeOperation, r)
 	}
 
 	if err != nil {
-		return "", c.handleHttpError(r, err, "Analyze")
+		return "", c.handleHttpError(r, err, analyzeOperation)
 	}
 
 	respData := resp.NonStreamGenerateResponse.GetData()
@@ -33,6 +38,10 @@ func (c *twelvelabsClient) Analyze(ctx context.Context, req *sdk.AnalyzeRequest)
 
 // Generates title, topics or hashtags from video
 func (c *twelvelabsClient) Gist(ctx context.Context, req *sdk.GistRequest) (*GistResult, error) {
+	if err := c.checkRateLimitState(ctx, gistOperation); err != nil {
+		return nil, err
+	}
+
 	resp, r, err := c.apiClient.AnalyzeVideosAPI.Gist(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
@@ -41,10 +50,11 @@ func (c *twelvelabsClient) Gist(ctx context.Context, req *sdk.GistRequest) (*Gis
 
 	if r != nil {
 		defer r.Body.Close()
+		c.updateRateLimitState(gistOperation, r)
 	}
 
 	if err != nil {
-		return nil, c.handleHttpError(r, err, "Gist")
+		return nil, c.handleHttpError(r, err, gistOperation)
 	}
 
 	newGist := &GistResult{
@@ -73,6 +83,10 @@ func (c *twelvelabsClient) Gist(ctx context.Context, req *sdk.GistRequest) (*Gis
 
 // Video ID, output type (chapter, highlight, summary) and prompt
 func (c *twelvelabsClient) Summarise(ctx context.Context, req *sdk.SummarizeRequest) (*SummariseResult, error) {
+	if err := c.checkRateLimitState(ctx, summariseOperation); err != nil {
+		return nil, err
+	}
+
 	resp, r, err := c.apiClient.AnalyzeVideosAPI.Summarize(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType(c.getDefaultHeader("Content-Type")).
@@ -81,10 +95,11 @@ func (c *twelvelabsClient) Summarise(ctx context.Context, req *sdk.SummarizeRequ
 
 	if r != nil {
 		defer r.Body.Close()
+		c.updateRateLimitState(summariseOperation, r)
 	}
 
 	if err != nil {
-		return nil, c.handleHttpError(r, err, "Summarise")
+		return nil, c.handleHttpError(r, err, summariseOperation)
 	}
 
 	// Extract chapter, highlight, or summary details based on the response

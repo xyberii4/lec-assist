@@ -1,5 +1,27 @@
 package twelvelabs
 
+import "fmt"
+
+// -- API Error Handling --
+type APIError struct {
+	StatusCode int
+	Code       string
+	Operation  string
+	Message    string
+}
+
+func (e *APIError) Error() string {
+	return fmt.Sprintf("TwelveLabs API error for %s (%d): %s - %s", e.Operation, e.StatusCode, e.Code, e.Message)
+}
+
+// -- Rate Limits --
+type RateLimit struct {
+	Limit     int   `json:"limit"`     // Total number of requests allowed for endpoint
+	Remaining int   `json:"remaining"` // Number of requests remaining for endpoint
+	Used      int   `json:"used"`      // Number of requests made for enpoint
+	Reset     int64 `json:"reset"`     // Time which used rates resets, in UTC epoch seconds
+}
+
 // -- Common Query Parameters for List Operations --
 
 type commonListQueryParameters struct {

@@ -20,7 +20,7 @@ func (c *twelvelabsClient) CreateIndex(ctx context.Context, req *sdk.CreateIndex
 	}
 
 	if err != nil {
-		return "", c.handleHttpError(r, err, "CreateIndex")
+		return "", c.handleHttpError(r, err, createIndexOperation)
 	}
 
 	zap.L().Info("Index created successfully",
@@ -42,7 +42,7 @@ func (c *twelvelabsClient) DeleteIndex(ctx context.Context, req *DeleteIndexRequ
 	}
 
 	if err != nil {
-		return c.handleHttpError(r, err, "DeleteIndex")
+		return c.handleHttpError(r, err, deleteIndexOperation)
 	}
 
 	zap.L().Info("Index deleted successfully",
@@ -82,7 +82,7 @@ func (c *twelvelabsClient) ListIndexes(ctx context.Context, query *ListIndexesQu
 	}
 
 	if err != nil {
-		return nil, c.handleHttpError(r, err, "ListIndexes")
+		return nil, c.handleHttpError(r, err, listIndexesOperation)
 	}
 
 	// Extract index details from response
@@ -117,7 +117,7 @@ func (c *twelvelabsClient) RetrieveIndex(ctx context.Context, req *RetrieveIndex
 	}
 
 	if err != nil {
-		return nil, c.handleHttpError(r, err, "RetrieveIndex")
+		return nil, c.handleHttpError(r, err, retrieveIndexOperation)
 	}
 
 	index := &IndexDetails{
