@@ -96,6 +96,7 @@ func (c *twelvelabsClient) ListIndexes(ctx context.Context, query *ListIndexesQu
 			IndexName:  index.GetIndexName(),
 			CreatedAt:  index.GetCreatedAt(),
 			UpdatedAt:  index.GetUpdatedAt(),
+			ExpiresAt:  index.GetExpiresAt(),
 			VideoCount: int32(index.GetVideoCount()),
 		})
 	}
