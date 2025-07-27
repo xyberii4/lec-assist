@@ -11,7 +11,7 @@ import (
 var client Client
 
 func TestMain(m *testing.M) {
-	env, err := utils.InitTest(m)
+	env, err := utils.InitTest(m, "../../.env")
 	if err != nil {
 		zap.L().Error("Failed to load config for tests", zap.Error(err))
 	}

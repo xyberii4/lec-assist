@@ -82,6 +82,25 @@ func GetClient() Client {
 	return globalClient
 }
 
+// Mock Client for tests
+func NewTestClient(hc *http.Client, baseurl string, authKey string) Client {
+	cfg := sdk.NewConfiguration()
+	cfg.HTTPClient = hc
+	cfg.Servers = []sdk.ServerConfiguration{
+		{URL: baseurl},
+	}
+	cfg.AddDefaultHeader("x-api-key", authKey)
+	cfg.AddDefaultHeader("Content-Type", "application/json")
+
+	apiClient := sdk.NewAPIClient(cfg)
+
+	return &twelvelabsClient{
+		apiClient:       apiClient,
+		mu:              sync.Mutex{},
+		rateLimitStates: make(map[string]*RateLimit),
+	}
+}
+
 func (c *twelvelabsClient) getDefaultHeader(header string) string {
 	return c.apiClient.GetConfig().DefaultHeader[header]
 }
@@ -277,7 +296,7 @@ func (c *twelvelabsClient) handleHttpError(httpResp *http.Response, err error, o
 
 	} else {
 		// if no HTTP response
-		apiErr.StatusCode = http.StatusBadGateway
+		apiErr.StatusCode = http.StatusServiceUnavailable
 		apiErr.Message = fmt.Sprintf("No HTTP response received: %s", err.Error())
 		zap.L().Error("TwelveLabs API call failed (no HTTP response)",
 			zap.String("operation", operation),
