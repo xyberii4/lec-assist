@@ -225,7 +225,12 @@ func (c *twelvelabsClient) checkRateLimitState(ctx context.Context, operation st
 				zap.L().Warn("Context cancelled while waiting for rate limit reset",
 					zap.String("operation", operation))
 
-				return ctx.Err()
+				return &APIError{
+					StatusCode: http.StatusTooManyRequests,
+					Code:       "RateLimitExceeded",
+					Operation:  operation,
+					Message:    "Rate limit exceeded, reset in " + sleepDuration.String(),
+				}
 			}
 
 			// Already past reset time, reset rate limit state

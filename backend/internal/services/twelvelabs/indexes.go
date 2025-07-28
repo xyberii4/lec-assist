@@ -112,36 +112,9 @@ func (s *service) ListIndexes(ctx context.Context, req *ListIndexesQuery) ([]*In
 		return nil, NewServiceError(ErrCodeInvalidArg, "request cannot be nil", nil)
 	}
 
-	if err := s.validateCommonListQuery(req.CommonListQuery); err != nil {
+	queryOpts, err := s.parseCommonListQuery(req.CommonListQuery)
+	if err != nil {
 		return nil, err
-	}
-
-	queryOpts := []interface{}{} // Query function options
-
-	// Add default query options
-	// If query parameters are not provided, default values will be used
-	if req.Page != nil {
-		queryOpts = append(queryOpts, twelvelabs.WithPage(*req.Page))
-	}
-
-	if req.PageLimit != nil {
-		queryOpts = append(queryOpts, twelvelabs.WithPageLimit(*req.PageLimit))
-	}
-
-	if req.SortBy != nil {
-		queryOpts = append(queryOpts, twelvelabs.WithSortBy(*req.SortBy))
-	}
-
-	if req.SortOption != nil {
-		queryOpts = append(queryOpts, twelvelabs.WithSortOption(*req.SortOption))
-	}
-
-	if req.CreatedAt != nil {
-		queryOpts = append(queryOpts, twelvelabs.WithCreatedAt(req.CreatedAt.Format(time.RFC3339)))
-	}
-
-	if req.UpdatedAt != nil {
-		queryOpts = append(queryOpts, twelvelabs.WithUpdatedAt(req.UpdatedAt.Format(time.RFC3339)))
 	}
 
 	// optional query parameters

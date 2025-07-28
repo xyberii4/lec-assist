@@ -15,8 +15,7 @@ func (c *twelvelabsClient) UploadVideo(ctx context.Context, req *UploadVideoRequ
 	apiReq := c.apiClient.UploadVideosAPI.CreateVideoIndexingTask(ctx).
 		XApiKey(c.getDefaultHeader("x-api-key")).
 		ContentType("multipart/form-data").
-		IndexId(req.IndexId).
-		EnableVideoStream(false)
+		IndexId(req.IndexId)
 
 	if req.VideoFile != nil {
 		apiReq = apiReq.VideoFile(req.VideoFile)
