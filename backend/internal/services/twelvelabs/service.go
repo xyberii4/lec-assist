@@ -12,6 +12,11 @@ type Service interface {
 	DeleteIndex(ctx context.Context, indexId string) error
 	ListIndexes(ctx context.Context, q *ListIndexesQuery) ([]*IndexDetails, error)
 	RetrieveIndex(ctx context.Context, indexId string) (*IndexDetails, error)
+
+	UploadVideo(ctx context.Context, req *twelvelabs.UploadVideoRequest) (*twelvelabs.TaskDetails, error)
+	ListUploads(ctx context.Context, req *ListUploadsQuery) ([]*UploadDetails, error)
+	RetrieveUpload(ctx context.Context, uploadId string) (*UploadDetails, error)
+	ListVideos(ctx context.Context, q *ListVideosQuery) ([]*VideoDetails, error)
 }
 
 type service struct {

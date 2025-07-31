@@ -7,6 +7,8 @@ const (
 	ErrCodeInvalidArg       = "invalid_argument"
 	ErrCodeConflict         = "conflict"
 	ErrCodeExternalAPIError = "external_api_error"
+
+	ErrCodeRateLimitExceeded = "rate_limit_exceeded"
 )
 
 type ServiceError struct {
